@@ -3,7 +3,7 @@ import { defaultConfig } from '@/configs/config_security'
 import { SecurityConfig } from '@/type/config_security'
 
 function setSecurityHeaders(response: NextResponse, config: SecurityConfig) {
-  const { headers } = response
+  // const { headers } = response
 
   // if (config.hideHeaderPoweredBy) {
   //   headers.delete('x-powered-by')

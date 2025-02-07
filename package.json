@@ -12,8 +12,9 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
-    "@msa_cli/react-composable": "^1.0.17-rc",
+    "@msa_cli/react-composable": "^1.0.17",
     "@nextui-org/react": "^2.6.11",
+    "@radix-ui/react-accordion": "^1.2.3",
     "@radix-ui/react-label": "^2.1.1",
     "@radix-ui/react-slot": "^1.1.1",
     "class-variance-authority": "^0.7.1",
