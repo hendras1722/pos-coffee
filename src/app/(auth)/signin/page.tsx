@@ -1,21 +1,18 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
-// import { signin } from "@/actions/auth/actions";
 
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { CardHeader, CardContent, CardFooter, Card } from '@/components/ui/card'
-import { signin } from '@/actions/auth/actions'
+import Form from '@/components/auth/form'
 
 export default async function SignInPage() {
   const supabase = await createClient()
   const { data } = await supabase.auth.getUser()
 
   if (data?.user) {
-    redirect('/')
+    redirect('/admin/dashboard')
   }
 
   return (
@@ -30,25 +27,7 @@ export default async function SignInPage() {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <form className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                placeholder="m@example.com"
-                required
-                type="email"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" name="password" required type="password" />
-            </div>
-            <Button formAction={signin} className="w-full">
-              Sign in
-            </Button>
-          </form>
+          <Form />
           <Separator />
           <div className="space-y-4">
             <Button className="w-full" variant="outline">

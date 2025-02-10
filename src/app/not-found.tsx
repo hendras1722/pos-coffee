@@ -13,7 +13,7 @@ export default async function NotFound() {
         <h1>Could not find requested resource</h1>
         <p className="text-center text-2xl">
           <Button>
-            <Link href={'/'}>Back</Link>
+            <Link href={'/admin/dashboard'}>Back</Link>
           </Button>
         </p>
       </div>

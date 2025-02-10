@@ -79,7 +79,7 @@ export default function RouteLeaveHandler({ guardCallback }) {
               const queryString = new URLSearchParams(
                 redirectOrBoolean.query || {}
               ).toString()
-              const url = `${redirectOrBoolean.path || '/'}${
+              const url = `${redirectOrBoolean.path || '/admin/dashboard'}${
                 queryString ? `?${queryString}` : ''
               }${redirectOrBoolean.hash || ''}`
 
