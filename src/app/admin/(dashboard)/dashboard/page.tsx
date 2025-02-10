@@ -215,7 +215,7 @@ export default function MyDraggableComponent() {
                 <Button
                   id="print-button"
                   onClick={printOrder}
-                  className="sticky bottom-0 mt-2 w-full"
+                  className="sticky bottom-0 mt-2 w-full z-[1]"
                 >
                   Print Pesanan
                 </Button>
@@ -284,11 +284,13 @@ export default function MyDraggableComponent() {
                   ))}
               </div>
               <div className="border border-gray-500 rounded p-3 h-[320px]  overflow-auto">
-                <Struct />
+                <div id="order-section">
+                  <Struct />
+                </div>
                 <Button
                   id="print-button"
                   onClick={printOrder}
-                  className="sticky bottom-0 mt-2 w-full"
+                  className="sticky bottom-0 mt-2 w-full z-[1]"
                 >
                   Print Pesanan
                 </Button>

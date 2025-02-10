@@ -27,4 +27,5 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(redirectTo)
     }
   }
+  return NextResponse.redirect(process.env.NEXT_BASE_URL + '/signin')
 }
