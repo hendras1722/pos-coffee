@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { defaultConfig } from '@/configs/config_security'
 import { SecurityConfig } from '@/type/config_security'
 
-function setSecurityHeaders(response: NextResponse, config: SecurityConfig) {
+import { updateSession } from '@/utils/supabase/middleware'
+
+async function setSecurityHeaders(
+  response: NextResponse,
+  config: SecurityConfig
+) {
   // const { headers } = response
 
   // if (config.hideHeaderPoweredBy) {
@@ -44,46 +49,48 @@ function setSecurityHeaders(response: NextResponse, config: SecurityConfig) {
 export async function middleware(request: NextRequest) {
   const config = defaultConfig
   const response = NextResponse.next()
-  const url = new URL(request.url)
+  // const url = new URL(request.url)
 
-  const token = request.cookies.get('token')
-  const { pathname } = new URL(request.url)
+  // const token = request.cookies.get('token')
+  // const { pathname } = new URL(request.url)
 
-  const isProtectedRoute = pathname.startsWith('/admin')
-  const isLoginPage = pathname === '/login'
+  // const isProtectedRoute = pathname.startsWith('/admin')
+  // const isLoginPage = pathname === '/login'
 
-  // Add response headers to prevent caching
-  response.headers.set('Cache-Control', 'no-store, max-age=0')
-  response.headers.set('Pragma', 'no-cache')
-  response.headers.set('Expires', '-1')
+  // // Add response headers to prevent caching
+  // response.headers.set('Cache-Control', 'no-store, max-age=0')
+  // response.headers.set('Pragma', 'no-cache')
+  // response.headers.set('Expires', '-1')
 
-  // Host validation
-  if (config.allowedHosts?.length) {
-    const host = request.headers.get('host')
-    if (host && !config.allowedHosts.includes(host)) {
-      return new NextResponse('Invalid Host header', { status: 400 })
-    }
-  }
+  // // Host validation
+  // if (config.allowedHosts?.length) {
+  //   const host = request.headers.get('host')
+  //   if (host && !config.allowedHosts.includes(host)) {
+  //     return new NextResponse('Invalid Host header', { status: 400 })
+  //   }
+  // }
 
-  // Force SSL in production
-  if (config.ssl && url.protocol === 'http:') {
-    url.protocol = 'https:'
-    return NextResponse.redirect(url)
-  }
+  // // Force SSL in production
+  // if (config.ssl && url.protocol === 'http:') {
+  //   url.protocol = 'https:'
+  //   return NextResponse.redirect(url)
+  // }
 
-  if (!token && isProtectedRoute && pathname.includes('/admin/user')) {
-    // request.cookies.delete('token')
+  // if (!token && isProtectedRoute && pathname.includes('/admin/user')) {
+  //   // request.cookies.delete('token')
 
-    const loginUrl = new URL('/login', request.url)
-    // loginUrl.searchParams.set('redirect', pathname)
-    return NextResponse.redirect(loginUrl, { status: 308 })
-  }
+  //   const loginUrl = new URL('/login', request.url)
+  //   // loginUrl.searchParams.set('redirect', pathname)
+  //   return NextResponse.redirect(loginUrl, { status: 308 })
+  // }
 
-  if (token && isLoginPage) {
-    const redirectUrl = new URL(request.url).searchParams.get('redirect')
-    const targetUrl = redirectUrl ?? '/admin/dashboard'
-    return NextResponse.redirect(new URL(targetUrl, request.url))
-  }
+  // if (token && isLoginPage) {
+  //   const redirectUrl = new URL(request.url).searchParams.get('redirect')
+  //   const targetUrl = redirectUrl ?? '/admin/dashboard'
+  //   return NextResponse.redirect(new URL(targetUrl, request.url))
+  // }
+
+  await updateSession(request)
 
   // Apply security headers
   return setSecurityHeaders(response, config)
@@ -94,6 +101,13 @@ export const config = {
   matcher: [
     '/admin/:path*',
     '/login',
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * Feel free to modify this pattern to include more paths.
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

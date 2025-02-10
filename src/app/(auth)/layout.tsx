@@ -12,10 +12,8 @@ export default function RootLayoutAdmin({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <Body>
-        <div>{children}</div>
-      </Body>
-    </html>
+    <Body>
+      <div>{children}</div>
+    </Body>
   )
 }

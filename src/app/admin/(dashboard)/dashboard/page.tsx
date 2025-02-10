@@ -183,7 +183,6 @@ export default function MyDraggableComponent() {
         </TabsList>
         <TabsContent value="1">
           <div>
-            <div>Lantai 1</div>
             <div className="grid lg:grid-cols-2 grid-cols-1 grid-rows-1 gap-6 mt-3 px-2 overflow-auto">
               <div
                 ref={containerRef}
@@ -259,7 +258,6 @@ export default function MyDraggableComponent() {
         </TabsContent>
         <TabsContent value="2">
           <div>
-            <div>Lantai 2</div>
             <div className="grid lg:grid-cols-2 grid-cols-1 grid-rows-1 gap-6 mt-3 px-2 overflow-auto">
               <div
                 ref={containerRef}

@@ -1,6 +1,6 @@
-'use client'
 import Checkout from '@/components/checkout'
-import Keyboard from '@/components/keyboard'
+import Form from '@/components/Menu/form'
+// import Keyboard from '@/components/keyboard'
 import Struct from '@/components/struct'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,33 +11,48 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useActionState } from 'react'
+import { cn } from '@/utils/lib'
+import ButtonSubmit from './ButtonSubmit'
 
 export default function Menu() {
-  const [error, submitAction, isPending] = useActionState(
-    (prevState, formData) => {
-      setTimeout(() => {
-        const json = formData.get('name')
-        console.log(json)
-      }, 5000)
-    },
-    null
-  )
   return (
     <div className="min-h-screen flex w-full">
+      <style>
+        {`
+          @media print {
+            @page {
+              size: 58mm auto;
+             margin: 10mm 0 0 0;
+            }
+             #struct{
+             display: flex !important;
+             }
+          #print-button {
+              display: none !important;
+            }
+           body * {
+              visibility: hidden;
+              height: 0;
+            }
+            #order-section, #order-section * {
+              visibility: visible;
+              height: auto;
+            }
+            #order-section {
+              position: absolute;
+              left: 10pt;
+              top: 0;
+              width: 62mm; 
+              height: auto;
+              font-size: 10pt; /* Ukuran font yang lebih kecil */
+            }
+          }
+        `}
+      </style>
       <div className="p-10 flex-1">
         <h1>Cashsir App</h1>
-        <form className="flex gap-3 mt-5" action={submitAction}>
-          <div>
-            Nama
-            <Input name="name" />
-          </div>
-          <div>
-            No meja
-            <Input name="no_meja" />
-          </div>
-          <button type="submit">Submit</button>
-        </form>
+        <Form />
+
         <div className="border-2 border-gray-800 w-full rounded-full my-5"></div>
         <div>
           <div className="mb-5 flex flex-wrap gap-3">
@@ -84,12 +99,17 @@ export default function Menu() {
           </div>
         </div>
       </div>
-      <div className="w-[600px] border-l-2 border-black p-5  flex-col lg:flex hidden ">
-        <Struct />
-        {/* <Checkout /> */}
-        <div>
-          <Button className="w-full bg-green-600">Print</Button>
-        </div>
+      <div
+        id="struct"
+        className={cn(
+          'w-[600px] border-l-2 border-black p-5 flex-col lg:flex hidden'
+        )}
+      >
+        {/* <div id="order-section">
+          <Struct />
+        </div> */}
+        <Checkout />
+        <ButtonSubmit />
       </div>
     </div>
   )

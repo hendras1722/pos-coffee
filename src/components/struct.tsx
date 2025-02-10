@@ -2,10 +2,45 @@
 
 export default function Struct() {
   return (
-    <div className="flex-1">
+    <div>
+      <style>
+        {`
+          @media print {
+            @page {
+              size: 58mm auto;
+             margin: 10mm 0 0 0;
+            }
+          #print-button {
+              display: none !important;
+            }
+           body * {
+              visibility: hidden;
+              height: 0;
+            }
+            #order-section, #order-section * {
+              visibility: visible;
+              height: auto;
+            }
+            #order-section {
+              position: absolute;
+              left: 10pt;
+              top: 0;
+              width: 62mm; 
+              height: auto;
+              font-size: 10pt; /* Ukuran font yang lebih kecil */
+            }
+              .cash_id{
+              font-size: 10px;
+              }
+          }
+        `}
+      </style>
       <h3 className="text-center">Cashsirapp</h3>
       <div className="border-2 border-gray-800 w-full rounded-full my-5 border-dashed"></div>
-      <div className="text-sm text-center"> 23.01.2023/10:00/UUID/Kasir/01</div>
+      <div className="text-sm text-center cash_id">
+        {' '}
+        CASHSIR021025112903/SYAHENDRA/01
+      </div>
       <div className="border-2 border-gray-800 w-full rounded-full my-5 border-dashed"></div>
       <div className="w-full">
         <table className="w-full">
