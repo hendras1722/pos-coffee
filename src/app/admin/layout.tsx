@@ -18,7 +18,7 @@ export default function RootLayoutAdmin({
       <Navbar />
       <div
         id="sidebar_menu"
-        className="grid grid-cols-[255px_1fr] h-[calc(100vh-56px)] duration-300 ease-in-out"
+        className="grid grid-cols-[255px_1fr] h-[calc(100vh-64px)] duration-300 ease-in-out"
       >
         <div className="w-full">
           <ListMenu />

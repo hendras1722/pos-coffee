@@ -1,16 +1,12 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { useElementBounding } from '@msa_cli/react-composable'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { DraggableItem } from '@/components/ComponentResizeble'
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import Struct from '@/components/struct'
 
 interface DraggableItem {
   id: number
@@ -21,6 +17,7 @@ interface DraggableItem {
   name: string
   width?: number
   height?: number
+  place: string
 }
 
 export default function MyDraggableComponent() {
@@ -32,6 +29,7 @@ export default function MyDraggableComponent() {
     height: 0,
   }
   const [addItems, setAddItems] = useState<DraggableItem>()
+  const [place, setPlace] = useState<string>('1')
 
   const [draggableItems, setDraggableItems] = useState<DraggableItem[]>([
     {
@@ -43,6 +41,7 @@ export default function MyDraggableComponent() {
       height: 32,
       x: 101.75,
       y: 161.22265625,
+      place: '1',
     },
     {
       id: 260.5501203759428,
@@ -53,6 +52,7 @@ export default function MyDraggableComponent() {
       height: 35,
       x: 217.91015625,
       y: 256.8828125,
+      place: '1',
     },
     {
       id: 121.37865963215144,
@@ -63,6 +63,41 @@ export default function MyDraggableComponent() {
       height: 34,
       x: 495.14453125,
       y: 133.75,
+      place: '1',
+    },
+
+    {
+      id: 365.76122245005513,
+      initialX: 10,
+      initialY: 10,
+      name: 'Meja 4',
+      width: 59,
+      height: 32,
+      x: 101.75,
+      y: 161.22265625,
+      place: '2',
+    },
+    {
+      id: 265.5501203759428,
+      initialX: 10,
+      initialY: 10,
+      name: 'Meja 5',
+      width: 70,
+      height: 35,
+      x: 217.91015625,
+      y: 256.8828125,
+      place: '2',
+    },
+    {
+      id: 125.37865963215144,
+      initialX: 10,
+      initialY: 10,
+      name: 'Meja 6',
+      width: 71,
+      height: 34,
+      x: 495.14453125,
+      y: 133.75,
+      place: '2',
     },
   ])
 
@@ -70,7 +105,7 @@ export default function MyDraggableComponent() {
     setDraggableItems((prevItems) =>
       prevItems.map((item) => {
         if (item.id === id) {
-          return { ...item, x, y }
+          return { ...item, x, y, place }
         }
         return item
       })
@@ -89,7 +124,7 @@ export default function MyDraggableComponent() {
     setDraggableItems((prevItems) =>
       prevItems.map((item) => {
         if (item.id === id) {
-          return { ...item, width, height }
+          return { ...item, width, height, place }
         }
         return item
       })
@@ -97,44 +132,96 @@ export default function MyDraggableComponent() {
   }
   const mathRandom = Math.random() * 500
 
-  useEffect(() => {
-    console.log('wewe')
-  }, [])
+  const printOrder = () => {
+    const printButton = document.getElementById('print-button')
+    if (printButton) printButton.style.display = 'none'
+
+    window.print()
+
+    if (printButton) printButton.style.display = 'block'
+  }
 
   return (
     <div>
-      <Accordion type="single" collapsible defaultValue="item-1">
-        <AccordionItem value="item-1">
-          <AccordionTrigger className="font-bold !no-underline">
+      <style>
+        {`
+          @media print {
+            @page {
+              size: 58mm auto;
+             margin: 10mm 0 0 0;
+            }
+          #print-button {
+              display: none !important;
+            }
+           body * {
+              visibility: hidden;
+              height: 0;
+            }
+            #order-section, #order-section * {
+              visibility: visible;
+              height: auto;
+            }
+            #order-section {
+              position: absolute;
+              left: 10pt;
+              top: 0;
+              width: 62mm; 
+              height: auto;
+              font-size: 10pt; /* Ukuran font yang lebih kecil */
+            }
+          }
+        `}
+      </style>
+      <Tabs defaultValue={place} className="w-full">
+        <TabsList>
+          <TabsTrigger onClick={() => setPlace('1')} value="1">
             Lantai 1
-          </AccordionTrigger>
-          <AccordionContent>
+          </TabsTrigger>
+          <TabsTrigger onClick={() => setPlace('2')} value="2">
+            Lantai 2
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="1">
+          <div>
+            <div>Lantai 1</div>
             <div className="grid lg:grid-cols-2 grid-cols-1 grid-rows-1 gap-6 mt-3 px-2 overflow-auto">
               <div
                 ref={containerRef}
                 className="relative h-[320px] w-[720px] bg-gray-100 rounded-lg overflow-auto"
               >
                 <img src="/desain-cafe.jpg" className="h-[320px] w-[720px]" />
-                {draggableItems.map((item, index) => (
-                  <DraggableItem
-                    key={item.name + index}
-                    id={item.id}
-                    initialX={item.x ?? item.initialX}
-                    initialY={item.y ?? item.initialY}
-                    containerWidth={containerWidth}
-                    containerHeight={containerHeight}
-                    onPositionChange={handlePositionChange}
-                    onDelete={handleDeleteItem}
-                    name={item.name}
-                    onResize={handleResize}
-                    width={item.width}
-                    height={item.height}
-                  />
-                ))}
+                {draggableItems
+                  .filter((item) => item.place === place)
+                  .map((item, index) => (
+                    <DraggableItem
+                      key={item.name + index}
+                      id={item.id}
+                      initialX={item.x ?? item.initialX}
+                      initialY={item.y ?? item.initialY}
+                      containerWidth={containerWidth}
+                      containerHeight={containerHeight}
+                      onPositionChange={handlePositionChange}
+                      onDelete={handleDeleteItem}
+                      name={item.name}
+                      onResize={handleResize}
+                      width={item.width}
+                      height={item.height}
+                    />
+                  ))}
               </div>
-              <div className=" border border-gray-500 rounded p-3 min-h-10 max-h-30 overflow-auto"></div>
+              <div className="border border-gray-500 rounded p-3 h-[320px]  overflow-auto">
+                <div id="order-section">
+                  <Struct />
+                </div>
+                <Button
+                  id="print-button"
+                  onClick={printOrder}
+                  className="sticky bottom-0 mt-2 w-full"
+                >
+                  Print Pesanan
+                </Button>
+              </div>
             </div>
-
             <div className="px-2 mt-5">
               <div className="mb-3">
                 <Input
@@ -146,6 +233,7 @@ export default function MyDraggableComponent() {
                       initialX: 10,
                       initialY: 10,
                       name: e.target.value,
+                      place: '1',
                     })
                   }
                 />
@@ -167,72 +255,83 @@ export default function MyDraggableComponent() {
                 Save
               </Button>
             </div>
-          </AccordionContent>
-        </AccordionItem>
-        {/* <AccordionItem value="item-2">
-          <AccordionTrigger className="font-bold !no-underline">
-            Lantai 2
-          </AccordionTrigger>
-          <AccordionContent>
-            <div
-              ref={containerRef}
-              className="relative h-80 w-full bg-gray-100 rounded-lg bg-[url('/desain-cafe.jpg')] bg-contain bg-center bg-no-repeat"
-            >
-              {draggableItems.map((item, index) => (
-                <DraggableItem
-                  key={item.name + index}
-                  id={item.id}
-                  initialX={item.x ?? item.initialX}
-                  initialY={item.y ?? item.initialY}
-                  containerWidth={containerWidth}
-                  containerHeight={containerHeight}
-                  onPositionChange={handlePositionChange}
-                  onDelete={handleDeleteItem}
-                  name={item.name}
-                  onResize={handleResize}
-                  width={item.width}
-                  height={item.height}
-                />
-              ))}
-            </div>
-            <div className="grid grid-cols-2 grid-rows-1 gap-6 mt-3 py-3">
-              <div>
-                <div className="mb-3">
-                  <Input
-                    name="name"
-                    placeholder="Masukkan Nomer Meja"
-                    onChange={(e) =>
-                      setAddItems({
-                        id: mathRandom,
-                        initialX: 10,
-                        initialY: 10,
-                        name: e.target.value,
-                      })
-                    }
-                  />
-                </div>
+          </div>
+        </TabsContent>
+        <TabsContent value="2">
+          <div>
+            <div>Lantai 2</div>
+            <div className="grid lg:grid-cols-2 grid-cols-1 grid-rows-1 gap-6 mt-3 px-2 overflow-auto">
+              <div
+                ref={containerRef}
+                className="relative h-[320px] w-[720px] bg-gray-100 rounded-lg overflow-auto"
+              >
+                <img src="/desain-cafe.jpg" className="h-[320px] w-[720px]" />
+                {draggableItems
+                  .filter((item) => item.place === place)
+                  .map((item, index) => (
+                    <DraggableItem
+                      key={item.name + index}
+                      id={item.id}
+                      initialX={item.x ?? item.initialX}
+                      initialY={item.y ?? item.initialY}
+                      containerWidth={containerWidth}
+                      containerHeight={containerHeight}
+                      onPositionChange={handlePositionChange}
+                      onDelete={handleDeleteItem}
+                      name={item.name}
+                      onResize={handleResize}
+                      width={item.width}
+                      height={item.height}
+                    />
+                  ))}
+              </div>
+              <div className="border border-gray-500 rounded p-3 h-[320px]  overflow-auto">
+                <Struct />
                 <Button
-                  className="border border-blue-400 bg-transparent text-blue-400 hover:bg-blue-400 hover:text-white"
-                  onClick={() =>
-                    addItems && setDraggableItems([...draggableItems, addItems])
-                  }
+                  id="print-button"
+                  onClick={printOrder}
+                  className="sticky bottom-0 mt-2 w-full"
                 >
-                  Add chair
-                </Button>
-                <Button
-                  className="border border-green-400 bg-transparent text-green-400 hover:bg-green-400 hover:text-white ml-3"
-                  onClick={() =>
-                    addItems && setDraggableItems([...draggableItems, addItems])
-                  }
-                >
-                  Save
+                  Print Pesanan
                 </Button>
               </div>
-              <div className="bg-gray-300 border border-gray-500 rounded p-3 min-h-10 max-h-30 overflow-auto"></div>
             </div>
-          </AccordionContent>
-        </AccordionItem> */}
-      </Accordion>
+            <div className="px-2 mt-5">
+              <div className="mb-3">
+                <Input
+                  name="name"
+                  placeholder="Masukkan Nomer Meja"
+                  onChange={(e) =>
+                    setAddItems({
+                      id: mathRandom,
+                      initialX: 10,
+                      initialY: 10,
+                      name: e.target.value,
+                      place: '1',
+                    })
+                  }
+                />
+              </div>
+              <Button
+                className="border border-blue-400 bg-transparent text-blue-400 hover:bg-blue-400 hover:text-white"
+                onClick={() =>
+                  addItems && setDraggableItems([...draggableItems, addItems])
+                }
+              >
+                Add chair
+              </Button>
+              <Button
+                className="border border-green-400 bg-transparent text-green-400 hover:bg-green-400 hover:text-white ml-3"
+                onClick={() =>
+                  addItems && setDraggableItems([...draggableItems, addItems])
+                }
+              >
+                Save
+              </Button>
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

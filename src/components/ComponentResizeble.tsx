@@ -39,7 +39,6 @@ export function DraggableItem({
     width: 0,
     height: 0,
   }
-
   const { x, y, isDragging } = useDraggable(
     elementRef as React.RefObject<HTMLElement>,
     {
@@ -51,13 +50,14 @@ export function DraggableItem({
         maxY: containerHeight - (elementHeight || 0) - 10,
       },
       onStart: (pos) => {
-        console.log(`Drag ${id} started at:`, pos)
+        // console.log(`Drag ${id} started at:`, pos)
       },
       onEnd: (pos) => {
-        console.log(`Drag ${id} ended at:`, pos)
+        // console.log(`Drag ${id} ended at:`, pos)
         onPositionChange(id, x, y)
       },
       onMove: (pos) => {},
+      enableDrag: true,
     }
   )
 
@@ -74,6 +74,7 @@ export function DraggableItem({
   return (
     <div
       role="button"
+      tabIndex={0}
       ref={elementRef}
       className="border border-gray-500 bg-gray-200 absolute text-black font-bold py-2 px-4 rounded text-nowrap w-fit resize -z-10 "
       style={{
@@ -90,19 +91,19 @@ export function DraggableItem({
         onResize={(width, height) =>
           height && width && id && onResize && onResize(id, width, height)
         }
-        enableResize={true}
+        enableResize={false}
       >
         <div>
           <div className="flex items-center justify-center">
             <div>{name ?? id}</div>
           </div>
-          <button
+          {/* <button
             onClick={(e) => handleDelete(e)}
             className="absolute -top-5 right-0 left-0 bottom-0 mx-auto cursor-pointer pointer-events-auto !important h-6 w-6 p-0 z-50 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center "
             aria-label={`Delete item ${id}`}
           >
             ×
-          </button>
+          </button> */}
         </div>
       </ResizableComponent>
     </div>
