@@ -6,15 +6,15 @@ import useDraggable from '@/composable/useDraggable'
 import ResizableComponent from '@/components/resizeable'
 
 interface DraggableItemProps {
-  id: number
+  id: string
   initialX: number
   initialY: number
   containerWidth: number
   containerHeight: number
-  onPositionChange: (id: number, x: number, y: number) => void
-  onDelete: (id: number) => void
+  onPositionChange: (id: string, x: number, y: number) => void
+  onDelete: (id: string) => void
   name: string
-  onResize?: (id: number, width: number, height: number) => void
+  onResize?: (id: string, width: number, height: number) => void
   width?: number
   height?: number
 }
@@ -91,19 +91,19 @@ export function DraggableItem({
         onResize={(width, height) =>
           height && width && id && onResize && onResize(id, width, height)
         }
-        enableResize={false}
+        enableResize={true}
       >
         <div>
           <div className="flex items-center justify-center">
             <div>{name ?? id}</div>
           </div>
-          {/* <button
+          <button
             onClick={(e) => handleDelete(e)}
             className="absolute -top-5 right-0 left-0 bottom-0 mx-auto cursor-pointer pointer-events-auto !important h-6 w-6 p-0 z-50 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center "
             aria-label={`Delete item ${id}`}
           >
             ×
-          </button> */}
+          </button>
         </div>
       </ResizableComponent>
     </div>
