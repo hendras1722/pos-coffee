@@ -33,10 +33,10 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '3000',
-        pathname: '/local/**',
+        protocol: 'https',
+        hostname: 'tikuwnepqhtjbypmcsst.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/pos/uploads/**',
       },
     ],
   },

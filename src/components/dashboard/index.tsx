@@ -1,6 +1,6 @@
 'use client'
 
-import React, { use, useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useElementBounding } from '@msa_cli/react-composable'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -71,7 +71,6 @@ export default function MyDraggableComponent({
     const supabase = createClient()
     setDraggableItems((prevItems) =>
       prevItems.map((item) => {
-        console.log(item, x, y, item.id, id)
         if (item.id === id && item.place === place) {
           return { ...item, x, y, place }
         }
@@ -88,10 +87,9 @@ export default function MyDraggableComponent({
 
   const handleDeleteItem = async (id: string) => {
     const supabase = createClient()
-    console.log(id)
 
     const { status, error } = await supabase.from('chair').delete().eq('id', id)
-    console.log(status)
+
     if (status >= 200 && status <= 300) {
       let { data: chair } = await supabase.from('chair').select('*')
       setDraggableItems(chair as Chair[])
@@ -172,7 +170,6 @@ export default function MyDraggableComponent({
         initialY: undefined,
         id: undefined,
       }))
-    console.log(saveItems)
 
     const saveData = await postChair(saveItems)
     if (saveData) {
@@ -207,6 +204,57 @@ export default function MyDraggableComponent({
     await getPlace()
     setIsPlace(false)
     return chair
+  }
+  function generateUUID() {
+    // Public Domain/MIT
+    let d = new Date().getTime() //Timestamp
+    let d2 =
+      (typeof performance !== 'undefined' &&
+        performance.now &&
+        performance.now() * 1000) ||
+      0 //Time in microseconds since page-load or 0 if unsupported
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(
+      /[xy]/g,
+      function (c) {
+        let r = Math.random() * 16 //random number between 0 and 16
+        if (d > 0) {
+          //Use timestamp until depleted
+          r = (d + r) % 16 | 0
+          d = Math.floor(d / 16)
+        } else {
+          //Use microseconds since page-load if supported
+          r = (d2 + r) % 16 | 0
+          d2 = Math.floor(d2 / 16)
+        }
+        return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16)
+      }
+    )
+  }
+
+  async function handleUpload(
+    e: React.ChangeEvent<HTMLInputElement>,
+    item: string
+  ) {
+    const supabase = createClient()
+    const file = e.target.files?.[0]
+    if (file) {
+      const { data: image, error } = await supabase.storage
+        .from('pos')
+        .upload(`uploads/${generateUUID()}`, file)
+
+      const { data: dataImage, error: errorUpdate } = await supabase
+        .from('place')
+        .update({ Image: image?.fullPath })
+        .eq('id', item)
+        .select()
+      await getPlace()
+      if (error) {
+        throw error
+      }
+      if (errorUpdate) {
+        throw errorUpdate
+      }
+    }
   }
 
   return (
@@ -244,29 +292,37 @@ export default function MyDraggableComponent({
         of={addPlace}
         render={(item, index) => (
           <div key={index} className="first:mt-0 mt-5">
-            <div>Tempat: {item.place}</div>
+            <div className="text-nowrap">Tempat: {item.place}</div>
+            <Input
+              type="file"
+              id="upload_file"
+              className="mt-2"
+              onChange={async (e) => handleUpload(e, item.id)}
+            />
             <div>
               <div className="grid lg:grid-cols-2 grid-cols-1 grid-rows-1 gap-6 mt-3 px-2 overflow-auto">
                 <div
                   ref={containerRef}
                   className="relative h-[320px] w-[720px] bg-gray-100 rounded-lg overflow-auto"
-                  onClick={() => {
-                    if (
-                      addPlace.find((item) => item.place === place.place)?.Image
-                    )
-                      return
-                    const inputElement = document.getElementById('upload_file')
-                    inputElement?.click()
-                  }}
                 >
                   {(item.Image && (
-                    <img
-                      src={item.Image}
-                      className="h-[320px] w-[720px]"
-                      width={0}
-                      height={0}
-                      alt="bg_cafe"
-                    />
+                    <div
+                      style={{
+                        position: 'relative',
+                        width: '720px',
+                        height: '320px',
+                      }}
+                    >
+                      <Image
+                        src={
+                          'https://tikuwnepqhtjbypmcsst.supabase.co/storage/v1/object/' +
+                          item.Image
+                        }
+                        alt="bg_cafe"
+                        layout="fill"
+                        objectFit="cover"
+                      />
+                    </div>
                   )) || (
                     <div className="h-[320px] w-[720px] flex items-center justify-center">
                       <Input type="file" id="upload_file" className="hidden" />
@@ -349,6 +405,19 @@ export default function MyDraggableComponent({
           </div>
         )}
       />
+      <div className="flex items-center mt-5">
+        <Input
+          className={`w-full`}
+          onChange={(e) => setStatePlace(e.target.value)}
+        />
+        <Button
+          className="scale-75 bg-green-300 hover:bg-green-500"
+          onClick={handleSavePlace}
+          disabled={!statePlace}
+        >
+          <FaCheck />
+        </Button>
+      </div>
       {/* {place.place && (
         <Tabs defaultValue={place.place} className="w-full">
           <TabsList>
