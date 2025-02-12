@@ -11,12 +11,13 @@ interface DraggableItemProps {
   initialY: number
   containerWidth: number
   containerHeight: number
-  onPositionChange: (id: string, x: number, y: number) => void
+  onPositionChange: (id: string, x: number, y: number, place: string) => void
   onDelete: (id: string) => void
   name: string
   onResize?: (id: string, width: number, height: number) => void
   width?: number
   height?: number
+  place: string
 }
 
 export function DraggableItem({
@@ -31,6 +32,7 @@ export function DraggableItem({
   onResize,
   width,
   height,
+  place,
 }: Readonly<DraggableItemProps>) {
   const elementRef = useRef<HTMLDivElement | null>(null)
   const { width: elementWidth, height: elementHeight } = useElementBounding(
@@ -50,11 +52,11 @@ export function DraggableItem({
         maxY: containerHeight - (elementHeight || 0) - 10,
       },
       onStart: (pos) => {
-        // console.log(`Drag ${id} started at:`, pos)
+        console.log(pos, 'start')
       },
       onEnd: (pos) => {
-        // console.log(`Drag ${id} ended at:`, pos)
-        onPositionChange(id, x, y)
+        console.log(`Drag ${id} ended at:`, pos)
+        onPositionChange(id, pos.x, pos.y, place)
       },
       onMove: (pos) => {},
       enableDrag: true,
@@ -78,8 +80,8 @@ export function DraggableItem({
       ref={elementRef}
       className="border border-gray-500 bg-gray-200 absolute text-black font-bold py-2 px-4 rounded text-nowrap w-fit resize -z-10 "
       style={{
-        left: x + 'px',
-        top: y + 'px',
+        left: (x < 0 ? 0 : x) + 'px',
+        top: (y < 0 ? 0 : y) + 'px',
         cursor: isDragging ? 'grabbing' : 'grab',
         zIndex: isDragging ? 1 : 0,
       }}
