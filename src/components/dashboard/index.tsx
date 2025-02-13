@@ -1,6 +1,12 @@
 'use client'
 
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useActionState,
+} from 'react'
 import { useElementBounding } from '@msa_cli/react-composable'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -58,7 +64,7 @@ export default function MyDraggableComponent({
 
   const [draggableItems, setDraggableItems] = useState<Chair[]>(data)
   const [dirty, setDirty] = useState(false)
-  const mathRandom = Math.random() * 500
+  const [isShowEditTitle, setIsShowEditTitle] = useState({})
 
   const handlePositionChange = async (
     id: string,
@@ -256,6 +262,24 @@ export default function MyDraggableComponent({
       }
     }
   }
+  const [title, setTitle] = useState({})
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>, id) {
+    e.preventDefault()
+    const supabase = createClient()
+
+    const { data, error: errupdate } = await supabase
+      .from('place')
+      .update({ place: title[id] })
+      .eq('id', id)
+      .select()
+    console.log(data)
+    if (errupdate) {
+      throw errupdate
+    }
+    await getPlace()
+    setTitle({})
+    setIsShowEditTitle({})
+  }
 
   return (
     <div>
@@ -292,7 +316,33 @@ export default function MyDraggableComponent({
         of={addPlace}
         render={(item, index) => (
           <div key={index} className="first:mt-0 mt-5">
-            <div className="text-nowrap">Tempat: {item.place}</div>
+            {isShowEditTitle[item.id] ? (
+              <form
+                onSubmit={(e) => handleSubmit(e, item.id)}
+                className="flex gap-3 w-56"
+              >
+                <Input
+                  type="text"
+                  name="place"
+                  value={title[item.id] || ''}
+                  onChange={(e) => setTitle({ [item.id]: e.target.value })}
+                />
+                <Button type="submit">Submit</Button>
+              </form>
+            ) : (
+              <>
+                <div
+                  className="text-nowrap"
+                  role="button"
+                  onClick={() =>
+                    setIsShowEditTitle({ ...isShowEditTitle, [item.id]: true })
+                  }
+                >
+                  Tempat: {item.place}
+                </div>
+              </>
+            )}
+
             <Input
               type="file"
               id="upload_file"
