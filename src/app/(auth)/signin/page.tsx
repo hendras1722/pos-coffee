@@ -6,6 +6,9 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { CardHeader, CardContent, CardFooter, Card } from '@/components/ui/card'
 import Form from '@/components/auth/form'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { signin } from '@/actions/auth/actions'
 
 export default async function SignInPage() {
   const supabase = await createClient()
@@ -27,7 +30,26 @@ export default async function SignInPage() {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <Form />
+          {/* <Form /> */}
+          <form className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                name="email"
+                placeholder="m@example.com"
+                required
+                type="email"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input id="password" name="password" required type="password" />
+            </div>
+            <Button type="submit" formAction={signin} className="w-full">
+              Sign in
+            </Button>
+          </form>
           <Separator />
           <div className="space-y-4">
             <Button className="w-full" variant="outline">

@@ -31,9 +31,11 @@ export async function signin(formData: FormData) {
   }
 
   const { error } = await supabase.auth.signInWithPassword(data)
-
+  
   if (error) {
-    throw new Error(error.message)
+    // throw new Error(error.message)
+    console.log(error)
+    return
   }
 
   revalidatePath('/', 'layout')

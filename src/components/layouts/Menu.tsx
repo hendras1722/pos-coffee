@@ -8,7 +8,7 @@ export default function ListMenu() {
   const route = useRoute()
   const menu = [
     { name: 'Pesanan', href: '/admin/dashboard', icon: () => <FaHouse /> },
-    { name: 'Menu', href: '/admin/table', icon: () => <FaBlender /> },
+    { name: 'Menu', href: '/admin/menu', icon: () => <FaBlender /> },
     { name: 'History', href: '/admin/table', icon: () => <FaBlender /> },
     { name: 'Kasir', href: '/admin/kasir', icon: () => <FaBlender /> },
   ]
