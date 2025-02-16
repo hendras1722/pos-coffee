@@ -23,45 +23,95 @@ import { Input } from '@/components/ui/input'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useStoreMenu } from '@/store/menu'
 import ArrayMap from '@/components/ArrayMap'
 import { useRef } from 'react'
-import { Menu } from '@/actions/getMenu/actions'
+import { createClient } from '@/utils/supabase/client'
+
+const MAX_FILE_SIZE = 1000000 // 1MB
+const ACCEPTED_IMAGE_TYPES = [
+  'image/png',
+  'image/jpeg',
+  'image/svg+xml',
+  'image/webp',
+]
 
 const formSchema = z.object({
   name: z.string().min(1, { message: 'Name is required' }),
   description: z.string().optional(), // Atau z.string().min(1, { message: "Description is required" }) jika wajib diisi
-  price: z.number().min(0, { message: 'Price must be a positive number' }),
+  price: z.string(),
   top_seller: z.enum(['yes', 'no']), // Atau z.boolean() jika 'yes'/'no' diubah menjadi true/false
-  img: z.string().url({ message: 'Invalid URL' }).optional(),
-  category: z.string().min(1, { message: 'Category is required' }),
+  img: z
+    .any()
+    .refine((file) => {
+      if (!file) return true
+      if (file.size > MAX_FILE_SIZE) return false
+      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) return false
+      return true
+    })
+    .optional(),
+  category: z.string().min(1, { message: 'Category is requireds' }).optional(),
 })
-export default function AddProduct() {
-  const storeMenu = useStoreMenu()
+export default function AddProduct({
+  getData,
+}: Readonly<{
+  getData: () => void
+}>) {
+  const nameFile = useRef('')
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
       description: '',
-      price: 0,
+      price: '0',
       top_seller: 'no',
-      img: '',
+      img: undefined,
       category: '',
     },
   })
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    storeMenu.menuAction({
-      created_at: new Date(),
-      name: 'Laptop Pro X1',
-      description: 'Powerful and lightweight laptop for professionals.',
-      price: 1299.99,
-      top_seller: 'yes',
-      img: 'https://example.com/laptop-pro-x1.jpg',
-      id: 'laptop-pro-x1-001',
-      category: 'Electronics',
-    })
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    console.log(values.img.name)
+    const supabase = createClient()
+    const { data, error: errorUploads } = await supabase.storage
+      .from('pos')
+      .upload(
+        'uploads/' + (nameFile.current || '').replace(' ', '-'),
+        values.img,
+        {
+          cacheControl: '3600',
+          upsert: false,
+        }
+      )
+
+    if (errorUploads) return console.error('errorUploads', errorUploads)
+
+    let newObj = {
+      ...values,
+      img: data?.fullPath + '/' + data?.id,
+      top_seller: false,
+    }
+
+    const { data: insertMenu, error } = await supabase
+      .from('menu')
+      .insert(newObj)
+      .select()
+
+    if (insertMenu && insertMenu?.length > 0) {
+      getData()
+    }
+
+    // console.log(insertMenu)
+    // storeMenu.menuAction({
+    //   created_at: new Date(),
+    //   name: 'Laptop Pro X1',
+    //   description: 'Powerful and lightweight laptop for professionals.',
+    //   price: 1299.99,
+    //   top_seller: 'yes',
+    //   img: 'https://example.com/laptop-pro-x1.jpg',
+    //   id: 'laptop-pro-x1-001',
+    //   category: 'Electronics',
+    // })
   }
   const formName = useRef([
     { key: 'name', name: 'name' },
@@ -96,11 +146,19 @@ export default function AddProduct() {
                     <FormItem>
                       <FormLabel className="capitalize">{item?.name}</FormLabel>
                       <FormControl>
-                        <Input placeholder="shadcn" {...field} />
+                        {(item?.key === 'img' && (
+                          <Input
+                            type="file"
+                            onChange={(e) => {
+                              nameFile.current = String(
+                                e.target.files?.[0].name
+                              )
+                              field.onChange(e.target.files?.[0])
+                            }}
+                          />
+                        )) || <Input placeholder={item?.name} {...field} />}
+                        {/* <Input placeholder="shadcn" {...field} /> */}
                       </FormControl>
-                      <FormDescription>
-                        This is your public display name.
-                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

@@ -1,9 +1,10 @@
 'use client'
 import { Menu } from '@/actions/getMenu/actions'
+import AddProduct from '@/app/admin/(dashboard)/menu/addProduct'
 import { TableDemo } from '@/components/table'
 import { Button } from '@/components/ui/button'
-import { useStoreMenu } from '@/store/menu'
-import { useEffect, useRef } from 'react'
+import { createClient } from '@/utils/supabase/client'
+import { useState } from 'react'
 
 export const fields = [
   {
@@ -40,24 +41,24 @@ export const fields = [
 ]
 
 export const RenderTable = ({ data }: { data: Menu[] }) => {
-  const items = useRef(data)
-
-  const storeMenu = useStoreMenu()
-  useEffect(() => {
-    items.current = storeMenu.menu
-    // Conditionally clear the menu on mount if there's data
-    if (storeMenu.menu.length > 0) {
-      storeMenu.removeAction() // Correctly call the removeAction
-    }
-  }, [storeMenu.menu, storeMenu.removeAction]) // Depend on storeMenu.menu AND storeMenu.removeAction
+  const [items, setItems] = useState<Menu[]>(data)
+  const supabase = createClient()
+  const getMenu = async () => {
+    const { data, error } = await supabase.from('menu').select('*')
+    setItems(data as Menu[])
+    if (error) console.log(error)
+  }
   return (
     <div>
+      <div className="ml-auto flex justify-end w-full mb-3">
+        <AddProduct getData={getMenu} />
+      </div>
       <TableDemo
         fields={fields}
-        items={items.current}
+        items={items}
         footerContent={
           <div className="text-right font-bold">
-            Total Rows: {JSON.stringify((items.current || []).length)}
+            Total Rows: {JSON.stringify((items || []).length)}
           </div>
         }
       />
