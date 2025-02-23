@@ -5,6 +5,7 @@ import { TableDemo } from '@/components/table'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/utils/supabase/client'
 import { useState } from 'react'
+import NumberInput from './InputCurrency'
 
 export const fields = [
   {
@@ -16,11 +17,27 @@ export const fields = [
     label: 'Category',
     key: 'category',
     width: 'lg:w-[130px] w-[50px]',
+    render: (item: Menu, index: number) => (
+      <div className="flex items-center space-x-2">
+        <span>{item.category?.name}</span>
+      </div>
+    ),
   },
   {
     label: 'Price',
     key: 'price',
     width: 'lg:w-[330px] w-[80px]',
+    render: (item: Menu) => (
+      <div className="flex items-center space-x-2">
+        <NumberInput
+          value={String(item.price)}
+          onChange={() => {}}
+          disabled
+          className="!w-[200px] border-transparent disabled:cursor-auto disabled:!text-black"
+          leading={<span>Rp.</span>}
+        ></NumberInput>
+      </div>
+    ),
   },
 
   {
@@ -44,8 +61,16 @@ export const RenderTable = ({ data }: { data: Menu[] }) => {
   const [items, setItems] = useState<Menu[]>(data)
   const supabase = createClient()
   const getMenu = async () => {
-    const { data, error } = await supabase.from('menu').select('*')
-    setItems(data as Menu[])
+    const { data, error } = await supabase.from('menu').select(`
+         id,
+      name,
+      category: category(name),
+      price,
+      top_seller,
+      img,
+      description
+      `)
+    setItems(data as any[])
     if (error) console.log(error)
   }
   return (

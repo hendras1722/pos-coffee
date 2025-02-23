@@ -1,24 +1,36 @@
 import { createClient } from "@/utils/supabase/server"
 
 export interface Menu {
-  created_at:  Date;
-  name:        string;
-  description: string;
-  price:       number;
-  top_seller:  string;
-  img:         string;
-  id:          string;
-  category:          string;
+  id: string
+  name: string
+  price: number
+  top_seller: boolean
+  img: string
+  description: string
+  category: Category
+}
+
+export interface Category {
+  name: string;
 }
 
 
-export async function getMenu() {
-   const supabase = await createClient()
-  
-    const { data, error } = await supabase.from('menu').select('*')
 
-    return {
-      data: data as Menu[],
-      error: error
-    }
+export async function getMenu(): Promise<{ data: Menu[], error: any }> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase.from('menu').select(`
+      id,
+      name,
+      category: category(name),
+      price,
+      top_seller,
+      img,
+      description`)
+      const result = data as any[]
+   if(!data) return {data: [], error: error}
+  return {
+    data: result,
+    error: error,
+  }
 }
