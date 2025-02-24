@@ -355,6 +355,7 @@ export default function MyDraggableComponent({
                   ref={containerRef}
                   className="relative h-[320px] w-[720px] bg-gray-100 rounded-lg overflow-auto"
                 >
+                  {item.Image}
                   {(item.Image && (
                     <div
                       style={{

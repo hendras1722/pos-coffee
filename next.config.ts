@@ -9,17 +9,32 @@ const nextConfig: NextConfig = {
           source: '/js-holder/:path*',
           destination: 'https://jsonplaceholder.typicode.com/:path*',
         },
+        {
+          source: '/supabase/:path*',
+          destination:
+            'https://tikuwnepqhtjbypmcsst.supabase.co/storage/v1/:path*',
+        },
       ],
       beforeFiles: [
         {
           source: '/js-holder/:path*',
           destination: 'https://jsonplaceholder.typicode.com/:path*',
         },
+        {
+          source: '/supabase/:path*',
+          destination:
+            'https://tikuwnepqhtjbypmcsst.supabase.co/storage/v1/:path*',
+        },
       ],
       fallback: [
         {
           source: '/js-holder/:path*',
           destination: 'https://jsonplaceholder.typicode.com/:path*',
+        },
+        {
+          source: '/supabase/:path*',
+          destination:
+            'https://tikuwnepqhtjbypmcsst.supabase.co/storage/v1/:path*',
         },
       ],
     }
