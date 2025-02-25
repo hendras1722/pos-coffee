@@ -37,6 +37,7 @@ import {
 import { Menu } from '@/actions/getMenu/actions'
 import Image from 'next/image'
 import { useImage } from '@msa_cli/react-composable'
+import { useCategory } from '@/composable/getCategory'
 
 const MAX_FILE_SIZE = 1000000 // 1MB
 const ACCEPTED_IMAGE_TYPES = [
@@ -104,19 +105,13 @@ export default function EditProduct({
   const [isPending, startTransition] = useTransition()
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  async function getCategory() {
-    const supabase = createClient()
-    let { data: category, error } = await supabase.from('category').select('*')
-    if (error) return console.error(error)
-    setCategory(category ?? [])
-  }
-  useEffect(() => {
-    const getCategoryAsync = async () => {
-      await getCategory()
-    }
+  const { category: categoryData } = useCategory()
 
-    getCategoryAsync()
-  }, [])
+  useEffect(() => {
+    if (categoryData) {
+      setCategory(categoryData)
+    }
+  }, [categoryData])
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -171,8 +166,11 @@ export default function EditProduct({
       }
 
       if (editMenu) {
-        getData()
-        form.reset()
+        startTransition(() => {
+          getData()
+          form.reset()
+          setIsModalOpen(false)
+        })
       }
     })
   }
@@ -235,18 +233,16 @@ export default function EditProduct({
                               />
                               {loading && <p>Loading...</p>}
                               {error && <p>Error: {error.message}</p>}
-                              {image && (
+                              {(image || objUrl) && (
                                 <Image
                                   src={
-                                    objUrl ??
                                     'https://tikuwnepqhtjbypmcsst.supabase.co/storage/v1/object/' +
-                                      data.img
+                                    data.img
                                   }
-                                  width={0}
-                                  height={100}
-                                  className="mt-5 w-full object-contain rounded"
+                                  width={400}
+                                  height={0}
+                                  className="mt-5 rounded"
                                   alt="bg_cafe"
-                                  unoptimized
                                 />
                               )}
                             </div>

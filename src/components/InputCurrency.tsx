@@ -102,7 +102,7 @@ const NumberInput = ({
 
   return (
     <div>
-      <div className="relative w-fit">
+      <div className="relative w-full">
         {leading && (
           <span className="absolute top-1/2 left-4 -translate-y-1/2">
             {leading}

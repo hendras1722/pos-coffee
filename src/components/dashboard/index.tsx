@@ -243,6 +243,16 @@ export default function MyDraggableComponent({
     setIsShowEditTitle({})
   }
 
+  useEffect(() => {
+    if (addPlace.length > 0) {
+      const initialTitles = {}
+      addPlace.forEach((item) => {
+        initialTitles[item.id] = item.place
+      })
+      setTitle(initialTitles)
+    }
+  }, [addPlace])
+
   return (
     <div>
       <style>
@@ -286,8 +296,13 @@ export default function MyDraggableComponent({
                 <Input
                   type="text"
                   name="place"
-                  value={title[item.id] || ''}
-                  onChange={(e) => setTitle({ [item.id]: e.target.value })}
+                  value={title[item.id] || item.place}
+                  onChange={(e) =>
+                    setTitle((prevState) => ({
+                      ...prevState,
+                      [item.id]: e.target.value,
+                    }))
+                  }
                 />
                 <Button type="submit">Submit</Button>
               </form>
@@ -302,11 +317,11 @@ export default function MyDraggableComponent({
                 Tempat: {item.place}
               </div>
             )}
-
             <Input
               type="file"
               id="upload_file"
               className="mt-2"
+              placeholder={item.place}
               onChange={async (e) => handleUpload(e, item.id)}
             />
             <div>
@@ -315,7 +330,6 @@ export default function MyDraggableComponent({
                   ref={containerRef}
                   className="relative h-[320px] w-[720px] bg-gray-100 rounded-lg overflow-auto"
                 >
-                  {item.Image}
                   {(item.Image && (
                     <div
                       style={{

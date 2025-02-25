@@ -2,33 +2,32 @@
 import { Menu } from '@/actions/getMenu/actions'
 import AddProduct from '@/app/admin/(dashboard)/menu/addProduct'
 import { TableDemo } from '@/components/table'
-import { Button } from '@/components/ui/button'
 import { createClient } from '@/utils/supabase/client'
 import { useState } from 'react'
-import NumberInput from './InputCurrency'
 import EditProduct from '@/app/admin/(dashboard)/menu/editProduct'
-import { Input } from './ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './ui/select'
+import AnimatedCheckbox from './checkbox'
+import DeleteProduct from '@/app/admin/(dashboard)/menu/deleteProduct'
 
 export const RenderTable = ({ data }: { data: Menu[] }) => {
   const [items, setItems] = useState<Menu[]>(data)
+
   const supabase = createClient()
   const getMenu = async () => {
-    const { data, error } = await supabase.from('menu').select(`
+    const { data, error } = await supabase
+      .from('menu')
+      .select(
+        `
          id,
       name,
       category: category(name, id),
       price,
       top_seller,
       img,
-      description
-      `)
+      description,
+      available
+      `
+      )
+      .order('created_at', { ascending: false })
     setItems(data as any[])
     if (error) console.log(error)
   }
@@ -66,17 +65,23 @@ export const RenderTable = ({ data }: { data: Menu[] }) => {
     {
       label: 'Available',
       key: 'available',
-      render: (item: Menu) => (
-        <div className="flex items-center space-x-2">
-          <Select defaultValue={String(item.available)}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select Available" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="true">Available</SelectItem>
-              <SelectItem value="false">Not available</SelectItem>
-            </SelectContent>
-          </Select>
+      width: 'lg:w-[30px] w-[80px]',
+      render: (item: Menu, index: number) => (
+        <div className="flex items-center">
+          <AnimatedCheckbox
+            checked={item.available}
+            id={index.toString()}
+            onChange={async (itemCheck) => {
+              const supabase = createClient()
+              const { error } = await supabase
+                .from('menu')
+                .update({ available: itemCheck })
+                .eq('id', item?.id)
+                .select()
+              if (error) throw error
+              getMenu()
+            }}
+          />
         </div>
       ),
     },
@@ -88,9 +93,7 @@ export const RenderTable = ({ data }: { data: Menu[] }) => {
       render: (item: Menu, index: number) => (
         <div className="flex items-center space-x-2">
           <EditProduct data={item} getData={getMenu} />
-          <Button className="border border-red-400 bg-transparent text-red-400 hover:bg-red-400 hover:text-white">
-            Delete
-          </Button>
+          <DeleteProduct data={item} getData={getMenu} />
         </div>
       ),
     },

@@ -34,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useCategory } from '@/composable/getCategory'
 
 const MAX_FILE_SIZE = 1000000 // 1MB
 const ACCEPTED_IMAGE_TYPES = [
@@ -93,19 +94,13 @@ export default function AddProduct({
   const [isPending, startTransition] = useTransition()
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  async function getCategory() {
-    const supabase = createClient()
-    let { data: category, error } = await supabase.from('category').select('*')
-    if (error) return console.error(error)
-    console.log(category)
-    setCategory(category ?? [])
-  }
+  const { category: categoryData } = useCategory()
+
   useEffect(() => {
-    const getCategoryAsync = async () => {
-      await getCategory()
+    if (categoryData) {
+      setCategory(categoryData)
     }
-    getCategoryAsync()
-  }, [])
+  }, [categoryData])
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -210,6 +205,7 @@ export default function AddProduct({
                                 onChange={(e: string) => {
                                   field.onChange(e)
                                 }}
+                                className="w-full"
                                 placeholder="Enter amount"
                                 leading={<span>Rp</span>}
                               />

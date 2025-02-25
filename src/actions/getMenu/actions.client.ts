@@ -18,15 +18,21 @@ export interface Category {
 export async function getMenuClient(): Promise<{ data: Menu[]; error: any }> {
   const supabase =  createClient()
 
-  const { data, error } = await supabase.from('menu').select(`
+  const { data, error } = await supabase
+    .from('menu')
+    .select(
+      `
          id,
       name,
       category: category(name, id),
       price,
       top_seller,
       img,
-      description
-      `)
+      description,
+      available
+      `
+    )
+    .order('created_at', { ascending: false })
   const result = data as any[]
   if (!data) return { data: [], error: error }
   return {
