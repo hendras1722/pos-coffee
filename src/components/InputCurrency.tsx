@@ -38,10 +38,10 @@ const NumberInput = ({
   }
 
   useEffect(() => {
-    if (value) {
-      const formatted = formatMoney(value)
-      setFormattedValue(formatted)
-    }
+    // Set formatted value based on the provided value
+    // Allow empty string to pass through
+    const formatted = value === '' ? '' : formatMoney(value)
+    setFormattedValue(formatted)
   }, [value])
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -67,6 +67,13 @@ const NumberInput = ({
     if (disabled || !onChange) return
 
     const currentValue = e.target.value
+    // If input is empty, pass empty string to onChange
+    if (!currentValue) {
+      onChange('')
+      setFormattedValue('')
+      return
+    }
+
     const cursorPosition = e.target.selectionStart || 0
 
     const dotsBeforeCursor = (
@@ -94,22 +101,21 @@ const NumberInput = ({
   }
 
   return (
-    <div className="w-full">
-      <div>
-        <div className="relative">
-          {leading && (
-            <span className="absolute top-1/2 left-4 -translate-y-1/2">
-              {leading}
-            </span>
-          )}
+    <div>
+      <div className="relative w-fit">
+        {leading && (
+          <span className="absolute top-1/2 left-4 -translate-y-1/2">
+            {leading}
+          </span>
+        )}
 
-          <Input
-            ref={inputRef}
-            type="text"
-            inputMode="numeric"
-            className={cn(
-              className,
-              `
+        <Input
+          ref={inputRef}
+          type="text"
+          inputMode="numeric"
+          className={cn(
+            className,
+            `
               w-full 
               bg-transparent 
               rounded-md 
@@ -122,23 +128,22 @@ const NumberInput = ({
               ${leading ? 'pl-12' : 'pl-5'}
               ${trailing ? 'pr-12' : 'pr-5'}
             `
-            )}
-            value={formattedValue}
-            onKeyDown={handleKeyPress}
-            onChange={handleInput}
-            disabled={disabled}
-            {...props}
-          />
-
-          {trailing && (
-            <span className="absolute top-1/2 right-4 -translate-y-1/2">
-              {trailing}
-            </span>
           )}
-        </div>
+          value={formattedValue}
+          onKeyDown={handleKeyPress}
+          onChange={handleInput}
+          disabled={disabled}
+          {...props}
+        />
 
-        {error && <p className="my-[10px] text-sm text-red-500">{error}</p>}
+        {trailing && (
+          <span className="absolute top-1/2 right-4 -translate-y-1/2">
+            {trailing}
+          </span>
+        )}
       </div>
+
+      {error && <p className="my-[10px] text-sm text-red-500">{error}</p>}
     </div>
   )
 }

@@ -8,6 +8,7 @@ export interface Menu {
   img: string
   description: string
   category: Category
+  available: boolean
 }
 
 export interface Category {

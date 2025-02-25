@@ -1,26 +1,17 @@
 'use client'
 
-import React, {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useActionState,
-} from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useElementBounding } from '@msa_cli/react-composable'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { DraggableItem } from '@/components/ComponentResizeble'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import Struct from '@/components/struct'
 import ArrayMap from '../ArrayMap'
 import Image from 'next/image'
-import { getChair } from '@/actions/chair/actions'
 
 // import imageAsset from '../../../public/desain-cafe.jpg'
 import { createClient } from '@/utils/supabase/client'
 import { FaCheck } from 'react-icons/fa6'
-import { TableDemo } from '@/components/table'
 
 interface Chair {
   id?: string
@@ -59,11 +50,9 @@ export default function MyDraggableComponent({
     created_at: Date
   }>({ id: '', place: '', created_at: new Date() })
   const [addPlace, setAddPlace] = useState<Place[]>([])
-  const [isPlace, setIsPlace] = useState<boolean>(false)
   const [statePlace, setStatePlace] = useState<string>('')
 
   const [draggableItems, setDraggableItems] = useState<Chair[]>(data)
-  const [dirty, setDirty] = useState(false)
   const [isShowEditTitle, setIsShowEditTitle] = useState({})
 
   const handlePositionChange = async (
@@ -72,8 +61,6 @@ export default function MyDraggableComponent({
     y: number,
     place: string
   ) => {
-    setDirty(true)
-
     const supabase = createClient()
     setDraggableItems((prevItems) =>
       prevItems.map((item) => {
@@ -104,7 +91,6 @@ export default function MyDraggableComponent({
   }
 
   const handleResize = (id: string, width: number, height: number) => {
-    setDirty(true)
     setDraggableItems((prevItems) =>
       prevItems.map((item) => {
         if (item.id === id) {
@@ -162,29 +148,6 @@ export default function MyDraggableComponent({
     getPlace()
   }, [])
 
-  const handleSave = async () => {
-    const supabase = createClient()
-
-    const saveItems = draggableItems
-      .filter(
-        (item) =>
-          data.filter((dataItem) => dataItem.id === item.id).length === 0
-      )
-      .map((item) => ({
-        ...item,
-        initialX: undefined,
-        initialY: undefined,
-        id: undefined,
-      }))
-
-    const saveData = await postChair(saveItems)
-    if (saveData) {
-      let { data: chair, error } = await supabase.from('chair').select('*')
-      if (error) window.location.reload()
-      setDraggableItems(chair as Chair[])
-    }
-  }
-
   function removeDuplicatePlaces(arr: Chair[]) {
     if (arr.length === 0) return []
     const seenPlaces = new Set()
@@ -208,7 +171,6 @@ export default function MyDraggableComponent({
       .select()
     if (error) return error
     await getPlace()
-    setIsPlace(false)
     return chair
   }
   function generateUUID() {
@@ -330,17 +292,15 @@ export default function MyDraggableComponent({
                 <Button type="submit">Submit</Button>
               </form>
             ) : (
-              <>
-                <div
-                  className="text-nowrap"
-                  role="button"
-                  onClick={() =>
-                    setIsShowEditTitle({ ...isShowEditTitle, [item.id]: true })
-                  }
-                >
-                  Tempat: {item.place}
-                </div>
-              </>
+              <div
+                className="text-nowrap"
+                role="button"
+                onClick={() =>
+                  setIsShowEditTitle({ ...isShowEditTitle, [item.id]: true })
+                }
+              >
+                Tempat: {item.place}
+              </div>
             )}
 
             <Input

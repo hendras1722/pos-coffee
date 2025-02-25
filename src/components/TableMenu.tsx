@@ -7,6 +7,14 @@ import { createClient } from '@/utils/supabase/client'
 import { useState } from 'react'
 import NumberInput from './InputCurrency'
 import EditProduct from '@/app/admin/(dashboard)/menu/editProduct'
+import { Input } from './ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select'
 
 export const RenderTable = ({ data }: { data: Menu[] }) => {
   const [items, setItems] = useState<Menu[]>(data)
@@ -43,16 +51,32 @@ export const RenderTable = ({ data }: { data: Menu[] }) => {
     {
       label: 'Price',
       key: 'price',
-      width: 'lg:w-[330px] w-[80px]',
+      width: 'lg:w-[130px] w-[80px]',
+      render: (item: Menu) => (
+        <div>
+          {item.price
+            .toLocaleString('id-ID', {
+              style: 'currency',
+              currency: 'IDR',
+            })
+            .replace(',00', '')}
+        </div>
+      ),
+    },
+    {
+      label: 'Available',
+      key: 'available',
       render: (item: Menu) => (
         <div className="flex items-center space-x-2">
-          <NumberInput
-            value={String(item.price)}
-            onChange={() => {}}
-            disabled
-            className="!w-[200px] border-transparent disabled:cursor-auto disabled:!text-black"
-            leading={<span>Rp.</span>}
-          ></NumberInput>
+          <Select defaultValue={String(item.available)}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select Available" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="true">Available</SelectItem>
+              <SelectItem value="false">Not available</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       ),
     },

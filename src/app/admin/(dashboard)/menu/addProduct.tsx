@@ -23,7 +23,7 @@ import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import ArrayMap from '@/components/ArrayMap'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import NumberInput from '@/components/InputCurrency'
 import {
@@ -42,6 +42,29 @@ const ACCEPTED_IMAGE_TYPES = [
   'image/svg+xml',
   'image/webp',
 ]
+
+function generateUUID() {
+  // Public Domain/MIT
+  let d = new Date().getTime() //Timestamp
+  let d2 =
+    (typeof performance !== 'undefined' &&
+      performance.now &&
+      performance.now() * 1000) ||
+    0 //Time in microseconds since page-load or 0 if unsupported
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    let r = Math.random() * 16 //random number between 0 and 16
+    if (d > 0) {
+      //Use timestamp until depleted
+      r = (d + r) % 16 | 0
+      d = Math.floor(d / 16)
+    } else {
+      //Use microseconds since page-load if supported
+      r = (d2 + r) % 16 | 0
+      d2 = Math.floor(d2 / 16)
+    }
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16)
+  })
+}
 
 const formSchema = z.object({
   name: z.string().min(1, { message: 'Name is required' }),
@@ -67,6 +90,8 @@ export default function AddProduct({
   const nameFile = useRef('')
   const [category, setCategory] = useState<any[]>([])
   const formRef = useRef<HTMLFormElement | null>(null)
+  const [isPending, startTransition] = useTransition()
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   async function getCategory() {
     const supabase = createClient()
@@ -95,52 +120,41 @@ export default function AddProduct({
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const supabase = createClient()
-    const { data, error: errorUploads } = await supabase.storage
-      .from('pos')
-      .upload(
-        'uploads/' + (nameFile.current || '').replace(' ', '-'),
-        values.img,
-        {
+    startTransition(async () => {
+      const supabase = createClient()
+      const { data, error: errorUploads } = await supabase.storage
+        .from('pos')
+        .upload('uploads/' + (generateUUID() || ''), values.img, {
           cacheControl: '3600',
           upsert: false,
-        }
-      )
+        })
 
-    if (errorUploads) return console.error('errorUploads', errorUploads)
+      if (errorUploads) return console.error('errorUploads', errorUploads)
 
-    let newObj = {
-      ...values,
-      img: data?.fullPath + '/' + data?.id,
-      top_seller: false,
-      price: values.price.split('.').join(''),
-    }
+      let newObj = {
+        ...values,
+        img: data?.fullPath + '/' + data?.id,
+        top_seller: values.top_seller === 'yes',
+        price: values.price.split('.').join(''),
+        id_category: values.category,
+        category: undefined,
+      }
 
-    const { data: insertMenu, error } = await supabase
-      .from('menu')
-      .insert(newObj)
-      .select()
-    if (error) {
-      const { data } = await supabase.storage
-        .from('pos')
-        .remove(['uploads/' + (nameFile.current || '').replace(' ', '-')])
-      return
-    }
-    if (insertMenu && insertMenu?.length > 0) {
-      getData()
-    }
-
-    // console.log(insertMenu)
-    // storeMenu.menuAction({
-    //   created_at: new Date(),
-    //   name: 'Laptop Pro X1',
-    //   description: 'Powerful and lightweight laptop for professionals.',
-    //   price: 1299.99,
-    //   top_seller: 'yes',
-    //   img: 'https://example.com/laptop-pro-x1.jpg',
-    //   id: 'laptop-pro-x1-001',
-    //   category: 'Electronics',
-    // })
+      const { data: insertMenu, error } = await supabase
+        .from('menu')
+        .insert(newObj)
+        .select()
+      if (error) {
+        const { data } = await supabase.storage
+          .from('pos')
+          .remove(['uploads/' + (nameFile.current || '').replace(' ', '-')])
+        return
+      }
+      if (insertMenu && insertMenu?.length > 0) {
+        getData()
+      }
+      setIsModalOpen(false)
+    })
   }
   const formName = useRef([
     { key: 'name', name: 'name' },
@@ -151,7 +165,7 @@ export default function AddProduct({
     { key: 'category', name: 'category' },
   ])
   return (
-    <Dialog>
+    <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" onClick={triggerButton}>
           Add Product
@@ -260,6 +274,7 @@ export default function AddProduct({
           <div className="block w-full">
             <div>
               <Button
+                disabled={isPending}
                 className="w-full"
                 onClick={() => formRef.current?.requestSubmit()}
               >

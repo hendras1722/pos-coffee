@@ -23,7 +23,7 @@ import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import ArrayMap from '@/components/ArrayMap'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import NumberInput from '@/components/InputCurrency'
 import {
@@ -96,14 +96,14 @@ export default function EditProduct({
   const [category, setCategory] = useState<any[]>([])
   const formRef = useRef<HTMLFormElement | null>(null)
   const [edit, setEdit] = useState(false)
-  console.log(
-    'https://tikuwnepqhtjbypmcsst.supabase.co/storage/v1/object/' + data?.img
-  )
   const { loading, error, image } = useImage({
     src:
       'https://tikuwnepqhtjbypmcsst.supabase.co/storage/v1/object/' + data?.img,
     alt: 'Example image',
   })
+  const [isPending, startTransition] = useTransition()
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
   async function getCategory() {
     const supabase = createClient()
     let { data: category, error } = await supabase.from('category').select('*')
@@ -130,59 +130,51 @@ export default function EditProduct({
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const supabase = createClient()
-    console.log(values)
-    let imgUpload
-    if (edit) {
-      const { data: imgUploadData, error: errorUploads } =
+    startTransition(async () => {
+      const supabase = createClient()
+      let imgUpload
+      if (edit) {
+        const { data: imgUploadData, error: errorUploads } =
+          await supabase.storage
+            .from('pos')
+            .upload('uploads/' + (generateUUID() || ''), values.img, {
+              cacheControl: '3600',
+              upsert: false,
+            })
+        imgUpload = imgUploadData?.fullPath
+        if (errorUploads) {
+          console.error('errorUploads', errorUploads)
+          return
+        }
+      }
+
+      let newObj = {
+        ...values,
+        img: edit ? imgUpload : data?.img,
+        top_seller: values.top_seller === 'yes',
+        price: values.price.split('.').join(''),
+        id_category: values.category,
+        category: undefined,
+      }
+
+      const { data: editMenu, error } = await supabase
+        .from('menu')
+        .update(newObj)
+        .eq('id', data?.id)
+        .select()
+
+      if (error) {
         await supabase.storage
           .from('pos')
-          .upload('uploads/' + (generateUUID() || ''), values.img, {
-            cacheControl: '3600',
-            upsert: false,
-          })
-      imgUpload = imgUploadData?.fullPath
-      if (errorUploads) return console.error('errorUploads', errorUploads)
-    }
+          .remove(['uploads/' + (nameFile.current || '').replace(' ', '-')])
+        return
+      }
 
-    let newObj = {
-      ...values,
-      img: edit ? imgUpload : data?.img,
-      top_seller: false,
-      price: values.price.split('.').join(''),
-      id_category: values.category,
-      category: undefined,
-    }
-
-    const { data: editMenu, error } = await supabase
-      .from('menu')
-      .update(newObj)
-      .eq('id', data?.id)
-      .select()
-
-    if (error) {
-      const { data } = await supabase.storage
-        .from('pos')
-        .remove(['uploads/' + (nameFile.current || '').replace(' ', '-')])
-      return false
-    }
-
-    if (editMenu) {
-      getData()
-      form.reset()
-    }
-
-    // console.log(insertMenu)
-    // storeMenu.menuAction({
-    //   created_at: new Date(),
-    //   name: 'Laptop Pro X1',
-    //   description: 'Powerful and lightweight laptop for professionals.',
-    //   price: 1299.99,
-    //   top_seller: 'yes',
-    //   img: 'https://example.com/laptop-pro-x1.jpg',
-    //   id: 'laptop-pro-x1-001',
-    //   category: 'Electronics',
-    // })
+      if (editMenu) {
+        getData()
+        form.reset()
+      }
+    })
   }
   const formName = useRef([
     { key: 'name', name: 'name' },
@@ -193,7 +185,7 @@ export default function EditProduct({
     { key: 'category', name: 'category' },
   ])
   return (
-    <Dialog>
+    <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
       <DialogTrigger asChild>
         <Button
           onClick={triggerButton}
@@ -246,10 +238,9 @@ export default function EditProduct({
                               {image && (
                                 <Image
                                   src={
-                                    objUrl
-                                      ? objUrl
-                                      : 'https://tikuwnepqhtjbypmcsst.supabase.co/storage/v1/object/' +
-                                        data.img
+                                    objUrl ??
+                                    'https://tikuwnepqhtjbypmcsst.supabase.co/storage/v1/object/' +
+                                      data.img
                                   }
                                   width={0}
                                   height={100}
@@ -335,9 +326,8 @@ export default function EditProduct({
         <DialogFooter className="block">
           <div className="block w-full">
             <div>
-              {form.formState.isLoading && <p>Loading...</p>}
               <Button
-                disabled={form.formState.isLoading}
+                disabled={isPending}
                 className="w-full"
                 onClick={() => formRef.current?.requestSubmit()}
               >
