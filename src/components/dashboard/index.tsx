@@ -305,10 +305,17 @@ export default function MyDraggableComponent({
                   }
                 />
                 <Button type="submit">Submit</Button>
+                <Button
+                  onClick={() =>
+                    setIsShowEditTitle({ ...isShowEditTitle, [item.id]: false })
+                  }
+                >
+                  X
+                </Button>
               </form>
             ) : (
               <div
-                className="text-nowrap"
+                className="text-nowrap w-fit"
                 role="button"
                 onClick={() =>
                   setIsShowEditTitle({ ...isShowEditTitle, [item.id]: true })
@@ -328,13 +335,12 @@ export default function MyDraggableComponent({
               <div className="grid lg:grid-cols-2 grid-cols-1 grid-rows-1 gap-6 mt-3 px-2 overflow-auto">
                 <div
                   ref={containerRef}
-                  className="relative h-[320px] w-[720px] bg-gray-100 rounded-lg overflow-auto"
+                  className="relative w-full bg-gray-200 rounded-lg overflow-auto border"
                 >
                   {(item.Image && (
                     <div
                       style={{
                         position: 'relative',
-                        width: '720px',
                         height: '320px',
                       }}
                     >
@@ -345,7 +351,8 @@ export default function MyDraggableComponent({
                         }
                         alt="bg_cafe"
                         layout="fill"
-                        objectFit="cover"
+                        priority={index === 0} // Load first image faster
+                        unoptimized
                       />
                     </div>
                   )) || (
@@ -443,143 +450,6 @@ export default function MyDraggableComponent({
           <FaCheck />
         </Button>
       </div>
-      {/* {place.place && (
-        <Tabs defaultValue={place.place} className="w-full">
-          <TabsList>
-         
-            <div className="flex gap 3">
-              {(isPlace && (
-                <>
-                  <Input
-                    className={`w-[100px]`}
-                    onChange={(e) => setStatePlace(e.target.value)}
-                  />
-                  <Button
-                    className="scale-75 bg-green-300 hover:bg-green-500"
-                    onClick={handleSavePlace}
-                  >
-                    <FaCheck />
-                  </Button>
-                </>
-              )) || (
-                <Button
-                  className="scale-75"
-                  onClick={() => setIsPlace(!isPlace)}
-                >
-                  +
-                </Button>
-              )}
-            </div>
-          </TabsList>
-
-          <TabsContent value={place.place}>
-            <div>
-              <div className="grid lg:grid-cols-2 grid-cols-1 grid-rows-1 gap-6 mt-3 px-2 overflow-auto">
-                <div
-                  ref={containerRef}
-                  className="relative h-[320px] w-[720px] bg-gray-100 rounded-lg overflow-auto"
-                  onClick={() => {
-                    if (
-                      addPlace.find((item) => item.place === place.place)?.Image
-                    )
-                      return
-                    const inputElement = document.getElementById('upload_file')
-                    inputElement?.click()
-                  }}
-                >
-                  {(addPlace.find((item) => item.place === place.place)
-                    ?.Image && (
-                    <img
-                      src={
-                        addPlace.find((item) => item.place === place.place)
-                          ?.Image ?? ''
-                      }
-                      className="h-[320px] w-[720px]"
-                      width={0}
-                      height={0}
-                      alt="bg_cafe"
-                    />
-                  )) || (
-                    <div className="h-[320px] w-[720px] flex items-center justify-center">
-                      <Input type="file" id="upload_file" className="hidden" />
-                      Upload Image
-                    </div>
-                  )}
-                  {(draggableItems || [])
-                    .filter((item) => item.place === place.id)
-                    .map((item, index) => (
-                      <DraggableItem
-                        key={item.name + index}
-                        id={item.id ?? ''}
-                        initialX={item.x}
-                        initialY={item.y}
-                        containerWidth={containerWidth}
-                        containerHeight={containerHeight}
-                        onPositionChange={handlePositionChange}
-                        onDelete={handleDeleteItem}
-                        name={item.name}
-                        onResize={handleResize}
-                        width={item.width}
-                        height={item.height}
-                      />
-                    ))}
-                </div>
-                <div className="border border-gray-500 rounded p-3 h-[320px]  overflow-auto">
-                  <div id="order-section">
-                    <Struct />
-                  </div>
-                  <Button
-                    id="print-button"
-                    onClick={printOrder}
-                    className="sticky bottom-0 mt-2 w-full z-[1]"
-                  >
-                    Print Pesanan
-                  </Button>
-                </div>
-              </div>
-              <div className="px-2 mt-5">
-                <div className="mb-3">
-                  <Input
-                    name="name"
-                    placeholder="Masukkan Nomer Meja"
-                    onChange={(e) =>
-                      setAddItems((prevState) => ({
-                        ...prevState,
-                        x: prevState?.x ?? 0,
-                        y: prevState?.y ?? 0,
-                        name: e.target.value,
-                        place: place.id ?? '',
-                        width: prevState?.width ?? 0,
-                        height: prevState?.height ?? 0,
-                      }))
-                    }
-                  />
-                </div>
-                <Button
-                  className="border border-blue-400 bg-transparent text-blue-400 hover:bg-blue-400 hover:text-white"
-                  onClick={async () => {
-                    const supabase = createClient()
-                    if (!addItems) return
-                    const { data } = await supabase
-                      .from('chair')
-                      .upsert(addItems)
-                      .select()
-                    if (data) {
-                      let { data: chair, error } = await supabase
-                        .from('chair')
-                        .select('*')
-                      if (error) window.location.reload()
-                      setDraggableItems(chair as Chair[])
-                    }
-                  }}
-                >
-                  Add chair
-                </Button>
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
-      )} */}
     </div>
   )
 }
